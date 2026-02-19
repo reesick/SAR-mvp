@@ -1,0 +1,189 @@
+
+=== FILE: 1.0.docx ===
+Architectural Blueprint for Next-Generation Agentic Anti-Money Laundering Frameworks: Automated Suspicious Activity Reporting and Multi-Source Data Correlation
+The global landscape of Anti-Money Laundering (AML) and Counter-Terrorist Financing (CTF) is currently undergoing a paradigm shift, transitioning from rigid, rule-based detection systems to dynamic, agentic architectures powered by large language models (LLMs) and advanced graph analytics. The historical burden of generating Suspicious Activity Reports (SARs) remains a significant operational bottleneck for financial institutions, with investigators frequently spending between five and six hours to draft a single, regulatorily compliant narrative.1 This inefficiency is compounded by high false-positive rates, where legitimate transactions are flagged due to a lack of contextual data correlation, such as failing to link a sudden spike in spending to a corresponding medical loan or insurance disbursement.1 The framework proposed herein details a comprehensive, open-source methodology for automating the entire SAR lifecycle—from multi-modal data ingestion and mathematical anomaly detection to agentic narrative synthesis and hyperlinked audit trails.
+Multi-Modal Data Ingestion and Unstructured Information Extraction
+The foundation of an effective AML system lies in its ability to ingest and normalize data from highly heterogeneous sources. In real-world banking environments, data is often "noisy," containing stale KYC records, inconsistent formatting across merged legacy systems, and corrupted fields.1 The ingestion layer must therefore handle both structured transactional data and unstructured documents like loan agreements, medical bills, and identification files.3
+Intelligent Document Processing and OCR Orchestration
+To transform unstructured PDF or image-based documents into a format suitable for downstream LLM processing, the system employs an Intelligent Document Processing (IDP) pipeline. The core of this pipeline is the orchestration of Optical Character Recognition (OCR) and layout analysis tools. While Tesseract remains a staple for high-volume text extraction from clean documents, modern financial requirements often necessitate the use of deep-learning-based models that understand complex layouts.5
+The system utilizes Unstructured.io as the primary orchestrator, feeding document images into PaddleOCR for layout-aware extraction. This process results in a structured JSON output where each piece of information is tagged with its origin, allowing the Ingestion Agent to categorize documents as "Medical Record," "Loan Agreement," or "KYC Update".1 This categorization is critical for the subsequent correlation phase, where the system must justify a transaction spike of $98,000 by finding a matching $100,000 medical loan approval in the ingested document pool.1
+Entity Resolution and Data Normalization
+Banking data frequently suffers from duplicate entries and variations in naming conventions (e.g., "J. Smith" vs. "John A. Smith"). The system addresses this through an Extract, Transform, Load (ETL) layer that applies fuzzy matching and graph-based entity resolution.1 By calculating similarity scores using Jaro-Winkler or Levenshtein distance, the system identifies clusters of records likely belonging to the same individual.8 These clusters are then merged into a "Customer 360" view within a knowledge graph, ensuring that all historical transactions and linked documents are correctly attributed even if the source data is inconsistent.1
+Mathematical Anomaly Detection and Statistical Correlation
+Once the data is normalized, the system moves into the analytical phase, where mathematical operations are used to detect suspicious patterns. This is not limited to simple threshold checks but extends to multi-dimensional behavior analysis.
+Statistical Spike Detection and Z-Score Analysis
+To handle the specific scenario where a customer’s spending suddenly jumps from a consistent $9,000 to $98,000, the system employs a rolling Z-score analysis. This statistical method quantifies how many standard deviations a data point is from the historical mean. The calculation for the Z-score is as follows:
+In this formula,  represents the current transaction value ($98,000),  is the historical mean of the customer’s transactions over a 12-month window ($9,000), and  is the standard deviation.10 A Z-score greater than 3 typically indicates a significant anomaly. However, the framework recognizes that a spike alone is not proof of illicit activity; it is merely a trigger for the Correlation Agent to seek external justification.1
+Principal Component Analysis and Feature Reduction
+When dealing with thousands of data points—including transaction frequency, geographic risk, account age, and counterparty diversity—the "curse of dimensionality" can hinder the performance of clustering algorithms. The system utilizes Principal Component Analysis (PCA) to reduce the feature space while retaining the most significant variance in the data.11 PCA transforms the original correlated variables into a set of linearly uncorrelated principal components through eigenvalue decomposition of the covariance matrix.
+By projecting high-dimensional customer behavior data onto the first three principal components, the system can visualize and detect outliers that represent novel laundering techniques not previously captured by static rules.11
+Unsupervised Clustering for Typology Discovery
+After dimensionality reduction via PCA, the system applies unsupervised learning algorithms to group similar transactions and identify clusters of suspicious activity.
+The integration of IBM AMLSim allows for the testing of these models against synthetic datasets containing known money laundering patterns, such as "Layering" and "Structuring".15 This ensures the models are tuned to detect actual financial crime while minimizing the noise that contributes to investigator fatigue.15
+Relational Synthesis via Knowledge Graphs and Correlation Agents
+A primary requirement of a modern SAR system is the ability to provide a clear reason for flagging. This requires linking the flagged transaction spike to other data sources—or identifying the absence of such data.1 The system uses a Knowledge Graph (KG), typically implemented in Neo4j, to manage these complex relationships.17
+Weakly Connected Components for Transaction Ring Detection
+The Weakly Connected Components (WCC) algorithm is deployed to identify groups of accounts that are connected through a chain of transfers, even if those connections are indirect.19 In an AML context, WCC is used to detect "money mule" networks. If the $98,000 spike is part of a larger cluster identified by WCC that contains accounts flagged by external sanctions lists or prior SAR filings, the probability of suspicion is significantly increased.8
+The Cypher logic for identifying these communities often involves projecting a subgraph of accounts and transfers:
+Cypher
+CALL gds.wcc.stream('transactionGraph', {
+  nodeLabels: ['Account'],
+  relationshipTypes:,
+  relationshipWeightProperty: 'amount'
+})
+YIELD nodeId, componentId
+RETURN gds.util.asNode(nodeId).accountID AS account, componentId
+ORDER BY componentId ASC;
+
+This WCC analysis provides the structural "Why" behind a flag, uncovering hidden dependencies that traditional relational databases would miss due to the cost of multi-hop joins.21
+Contextual Correlation and GraphRAG
+The system addresses the user requirement of justification by employing GraphRAG (Graph Retrieval-Augmented Generation). When the statistical agent detects a spike, the Correlation Agent traverses the graph to find any linked nodes that represent "Source of Funds" documentation or "Valid Expenditure" evidence.1
+For example, if a $98,000 outflow is matched in time and amount to an invoice for a "Property Purchase" ingested in Phase 1, the GraphRAG process retrieves this relationship and provides it to the Narrative Agent.1 If no such justification is found, the system explicitly notes: "No matching documentation found in ingested medical or loan repositories to explain the 10x deviation from historical mean," satisfying the requirement to state the reason for flagging or the lack of sufficient data.1
+Agentic Reasoning and AML Typology Enforcement
+The transition from raw data flags to a coherent SAR narrative is managed by a multi-agent orchestration engine, such as LangGraph or CrewAI.1 This architecture employs specialized agents that collaborate to ensure regulatory completeness and analytical depth.
+Sub-Agent Specialized Framework
+The Compliance Agent is pre-loaded with a repository of AML typologies and rules. These include thresholds defined by the Bank Secrecy Act (BSA), such as mandatory reporting for transactions over $5,000 where a suspect is identified, or $25,000 regardless of a suspect.1 The agent also monitors for "Structuring" typologies, such as multiple cash deposits of $9,900 over three days to avoid the $10,000 Currency Transaction Report (CTR) threshold.26
+Chain-of-Thought Reasoning for Transparency
+To ensure that every SAR narrative is defensible, the agents utilize Chain-of-Thought (CoT) prompting. Instead of simply stating that a transaction is suspicious, the system records its internal logic: "1. Observed inflow spike of $98k. 2. Checked historical average ($9k). 3. Searched Knowledge Graph for loan/insurance docs. 4. No documentation found. 5. Found high-risk geographic counterparty. 6. Pattern matches 'Layering' typology. Recommendation: Flag for SAR".1 This reasoning is stored in the database as metadata and forms the basis for the linked audit trails.
+Block-Based Editable Report Generation and Frontend Architecture
+The user requirement for a generated report that is editable based on "blocks" is met through a modern, web-based frontend utilizing rich text editors that treat content as structured JSON rather than unstructured HTML.
+Implementation of BlockNote and TipTap
+The system uses BlockNote, a React-based editor built on top of TipTap and ProseMirror.29 Unlike traditional editors, BlockNote organizes everything into discrete blocks (paragraphs, headings, tables). Each block is an independent element in a JSON array:
+JSON
+This architecture allows the system to handle user edits gracefully. If an analyst modifies a specific block, the system updates only that portion of the JSON data, preserving the links to the original audit trail for the rest of the document.29 Users can drag-and-drop blocks to reorder the narrative or click a block to request the AI to "Rewrite for clarity" or "Expand using counterparty data".1
+Professional Document Export via Carbone.io
+For the generation of the final Word (.docx) or PDF document, the system employs Carbone.io, an open-source tool that separates design from data.30 Carbone uses standard Word files as templates, where placeholders like {d.narrative_body} are replaced with the JSON output from the multi-agent system.30
+To satisfy the requirement of handling user-added information or additional data requirements, the UI includes a "Data Gap" panel. If an analyst adds a new fact—such as "The subject stated the funds were for a relative's surgery"—the system triggers a Feedback Agent to re-run the correlation logic to see if any new data points support this claim.1
+Advanced Audit Trails and Para-Level Traceability
+A "complete audit trail" is a non-negotiable regulatory requirement for AI-driven AML systems.1 The proposed framework implements a robust, hyperlinked audit system that connects every paragraph in the final report to the underlying data and reasoning that generated it.
+Schema for Traceable Rationale
+The audit trails are stored in a PostgreSQL database using the pgaudit extension and custom triggers.35 A dedicated audit.logged_actions table captures the "Who, What, When, and Why" of every AI decision.36
+Hyperlinking Logic in Word and PDF
+To fulfill the specific requirement for links in every paragraph, the system utilizes python-docx to manipulate the underlying XML of the Word document.37 During the export phase, the system identifies the audit_id associated with each block of text. It then wraps the paragraph in a w:hyperlink tag:
+Python
+def add_hyperlink_to_para(paragraph, url, text):
+    part = paragraph.part
+    r_id = part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+    hyperlink = OxmlElement('w:hyperlink')
+    hyperlink.set(qn('r:id'), r_id)
+    # Append the run containing the text to the hyperlink element
+    hyperlink.append(new_run_element)
+    paragraph._p.append(hyperlink)
+
+In the final report, an auditor can click any sentence to be redirected to the internal Compliance Dashboard, where the system displays the full audit log: the raw transaction of $98,000, the statistical Z-score result, the WCC graph community, and the compliance typology that was triggered.1 If an open-source tool cannot natively handle a direct link to a local database entry within a specific PDF viewer, the system defaults to a "QR Code" appendix or a summary table where each paragraph is cross-referenced by a number to a detailed "Audit Supplement" page.1
+Comparative Analysis of Research Approaches
+The system architecture is a synthesis of three distinct approaches identified in the research material, each contributing a different layer of robustness.
+The IEEE Generative AI Approach
+The IEEE research paper "Enhancing Suspicious Activity Reporting with Generative AI" focuses on the performance and accuracy gains of using models like GPT-4.1 It provides the statistical validation for this framework, demonstrating that AI can improve narrative completeness scores by 25% while handling complex scenarios like trade-based money laundering and cryptocurrency fraud.1 However, the IEEE approach primarily relies on structured simulated datasets.
+The Internal Design & Research Approach
+The design document 1 provides the pragmatic, banking-centric view, specifically tailored for integration with tools like the Barclays Case Management Tool (CMT). This approach emphasizes the "Correlation Agent" as the primary mechanism for reducing false positives by connecting transactions to real-world events (medical surgeries, personal loans).1 It also provides the blueprint for the "Human-in-the-Loop" block-correction UI.
+The Robust Preprocessing Approach
+The "Textbook vs. Real Data" methodology 1 identifies the critical risk of "Dirty Data." It argues that AI models will fail or hallucinate if fed corrupted KYC records. This methodology contributes the ETL layer of our system, ensuring that data is normalized and that the AI is programmed to proceed with "caution" (marking gaps as UNKNOWN) when data is insufficient.1
+Final Proposed Methodology
+The final framework integrates the high-performance reasoning of the IEEE approach, the deep contextual correlation of the design document, and the resilient data handling of the robust preprocessing methodology. It adds an original layer of paragraph-level traceability via XML-injected hyperlinks, ensuring that every claim in a 10,000-word SAR narrative is fully auditable back to the source transaction or ingested document.
+Conclusion and Future Outlook
+The implementation of an agentic, open-source framework for SAR automation represents a significant advancement in regulatory technology. By shifting the burden of manual data aggregation and narrative drafting to specialized AI agents, financial institutions can refocus human expertise on high-level investigative judgment and complex case resolution.1 The use of knowledge graphs and multi-source correlation addresses the long-standing issue of false positives, while block-based editing and hyperlinked audit trails ensure that transparency and human oversight remain at the center of the process.1
+Future iterations of this system will likely incorporate Federated Learning, allowing multiple institutions to train more robust anomaly detection models without sharing raw, sensitive customer data, thereby further improving the accuracy of detection while maintaining strict privacy compliance.1 Additionally, the transition toward Real-Time SAR generation, where reports are drafted instantaneously upon a threshold trigger and stored in tamper-proof blockchain ledgers, could redefine the speed and integrity of global financial monitoring.1 By adopting the modular, open-source stack detailed here—PostgreSQL, Neo4j, Unstract, BlockNote, and LangGraph—banks can build a future-proof compliance infrastructure that is both effective and defensible in an increasingly complex financial crime environment.
+Works cited
+Enhancing_Suspicious_Activity_Reporting_with_Generative_AI_Accuracy.pdf
+arxiv.org, accessed on February 17, 2026, https://arxiv.org/html/2509.08380v1
+Open-Source Unstructured Data ETL with Unstract, Ollama, DeepSeek, and PostgreSQL, accessed on February 17, 2026, https://unstract.com/blog/open-source-document-data-extraction-with-unstract-deepseek/
+Best data extraction tools for 2026 | Parseur®, accessed on February 17, 2026, https://parseur.com/blog/best-data-extraction-tools
+Best Open-Source OCR Tools in 2025: A Comparison - Unstract, accessed on February 17, 2026, https://unstract.com/blog/best-opensource-ocr-tools-in-2025/
+8 Top Open-Source OCR Models Compared: A Complete Guide - Modal, accessed on February 17, 2026, https://modal.com/blog/8-top-open-source-ocr-models-compared
+10 Open Source OCR Tools You Should Know About, accessed on February 17, 2026, https://www.koncile.ai/en/ressources/10-open-source-ocr-tools-you-should-know-about
+Combating Money Laundering: AML Graph Algorithms - Neo4j, accessed on February 17, 2026, https://neo4j.com/blog/fraud-detection/combating-money-laundering-aml-graph-algorithms/
+Top 10 Graph Database Use Cases (With Real-World Case Studies) - Neo4j, accessed on February 17, 2026, https://neo4j.com/blog/graph-database/graph-database-use-cases/
+Real-time anomaly detection: algorithms, use cases & SQL code - Tinybird, accessed on February 17, 2026, https://www.tinybird.co/blog/real-time-anomaly-detection
+AI Agents for Anomaly Detection (2025 Guide) - Rapid Innovation, accessed on February 17, 2026, https://www.rapidinnovation.io/post/ai-agents-for-transaction-anomaly-detection
+Anomaly Detection in Machine Learning Using Python | The PyCharm Blog, accessed on February 17, 2026, https://blog.jetbrains.com/pycharm/2025/01/anomaly-detection-in-machine-learning/
+How to do Anomaly Detection using Machine Learning in Python? - ProjectPro, accessed on February 17, 2026, https://www.projectpro.io/article/anomaly-detection-using-machine-learning-in-python-with-example/555
+Stay One Step Ahead: Harnessing Anomaly Detection In AML Data, accessed on February 17, 2026, https://financialcrimeacademy.org/anomaly-detection-in-aml-data/
+Building Real-World AML Systems: A Complete Guide to Open Source Implementation and MLOps Integration - Medium, accessed on February 17, 2026, https://medium.com/@vontamar/building-real-world-aml-systems-a-complete-guide-to-open-source-implementation-and-mlops-5b9e5fb8dd4e
+Anti-Money Laundering (AML) Alert Scoring - DataRobot docs, accessed on February 17, 2026, https://docs.datarobot.com/en/docs/get-started/gs-dr5/biz-accelerators/money-launder.html
+Fighting Financial Fraud with Graph Technology - Graph Database & Analytics - Neo4j, accessed on February 17, 2026, https://neo4j.com/blog/fraud-detection/fighting-financial-fraud-with-graph-technology/
+Combating Money Laundering: Graph Data Visualizations - Neo4j, accessed on February 17, 2026, https://neo4j.com/blog/fraud-detection/combating-money-laundering-graph-data-visualizations/
+Weakly Connected Components in Large-Scale Knowledge Graphs - DataWalk, accessed on February 17, 2026, https://datawalk.com/weakly-connected-components-in-large-scale-knowledge-graphs-benchmark-study/
+Graph Algorithms in Neo4j: Weakly Connected Components, accessed on February 17, 2026, https://neo4j.com/blog/graph-data-science/graph-algorithms-neo4j-weakly-connected-components/
+Graph Databases for Fraud Detection & Analytics | Neo4j, accessed on February 17, 2026, https://neo4j.com/use-cases/fraud-detection/
+Neo4j Graph Database Platform, accessed on February 17, 2026, https://neo4j.com/product/neo4j-graph-database/
+Neo4j Graph Database & Analytics | Graph Database Management System, accessed on February 17, 2026, https://neo4j.com/
+Best Multi Agent Frameworks : Full Comparison of Open Source and Production Ready Tools - DEV Community, accessed on February 17, 2026, https://dev.to/yeahiasarker/best-multi-agent-frameworks-full-comparison-of-open-source-and-production-ready-tools-283f
+Anti-Money laundering System Using Agentic AI | Kaggle, accessed on February 17, 2026, https://www.kaggle.com/competitions/agents-intensive-capstone-project/writeups/anti-money-laundering-system-using-agentic-ai
+Real-World AML System Implementation with Open-Source Big Data Tools - Medium, accessed on February 17, 2026, https://medium.com/@vontamar/real-world-aml-system-implementation-with-open-source-big-data-tools-347f1cbd3682
+Financial Crimes Enforcement Network - FinCEN.gov, accessed on February 17, 2026, https://www.fincen.gov/system/files/shared/sarnarrcompletguidfinal_112003.pdf
+tazama-lf/docs: This is the main directory for all project documentation files. - GitHub, accessed on February 17, 2026, https://github.com/frmscoe/docs
+BlockNote - Javascript Block-Based React rich text editor, accessed on February 17, 2026, https://www.blocknotejs.org/
+Carbone - Open Source Report and Document Generator, accessed on February 17, 2026, https://carbone.io/
+python-docx — python-docx 1.2.0 documentation, accessed on February 17, 2026, https://python-docx.readthedocs.io/
+How to automate creating reports using docx templates | by Holistic AI Engineering | Medium, accessed on February 17, 2026, https://medium.com/@engineering_holistic_ai/how-to-automate-creating-reports-using-docx-templates-bc3cbaae069e
+Edit Metadata in Docx Files Using Python - GroupDocs, accessed on February 17, 2026, https://products.groupdocs.com/metadata/python-net/edit/docx/
+PostgreSQL Audit Log: Complete Security - DataSunrise, accessed on February 17, 2026, https://www.datasunrise.com/knowledge-center/postgresql-audit-log/
+Audit logging in Azure Database for PostgreSQL - Microsoft Learn, accessed on February 17, 2026, https://learn.microsoft.com/en-us/azure/postgresql/security/security-audit
+Let's Build Production-Ready Audit Logs in PostgreSQL | by Sehban Alam - Medium, accessed on February 17, 2026, https://medium.com/@sehban.alam/lets-build-production-ready-audit-logs-in-postgresql-7125481713d8
+docx.text.hyperlink — python-docx 1.1.2 documentation - Read the Docs, accessed on February 17, 2026, https://python-docx.readthedocs.io/en/develop/_modules/docx/text/hyperlink.html
+Hyperlinks · Issue #610 · python-openxml/python-docx - GitHub, accessed on February 17, 2026, https://github.com/python-openxml/python-docx/issues/610
+Guide to the role of agentic AI in AML compliance - Napier AI, accessed on February 17, 2026, https://www.napier.ai/knowledgehub/agentic-ai-aml-compliance
+A Guide to the Transformative Role of Agentic AI in AML - ComplyAdvantage, accessed on February 17, 2026, https://complyadvantage.com/insights/a-guide-to-the-transformative-role-of-agentic-ai-in-aml/
+
+
+=== FILE: GPT1.0.docx ===
+SAR Narrative Generator with Audit Trail: Technical Methodology
+Our system follows a fully transparent, step-by-step pipeline from raw data to final report. Below is the detailed methodology, highlighting the models and techniques at each stage:
+1. Data Ingestion and Preprocessing
+Raw Data Sources: The system ingests data from all relevant channels: transaction alerts, core banking ledgers (transaction histories), KYC/CDD profiles, and external references (watchlists, credit bureau data). Input can be structured (CSV, SQL) or semi-structured (JSON, XML) and even unstructured (PDF statements). Tools like Apache Tika or custom parsers extract text from documents, and Pandas is used for tables.
+Initial Validation: Upon ingestion, a validation agent checks for missing or malformed fields. It flags any null critical values (e.g. missing DOB or account number). This step is crucial since poor data quality leads to false alerts[1][2]. If fields like “occupation” or “branch code” are null or inconsistent, the system marks them and attempts to normalize (see below) or requests analyst review.
+Data Cleaning & Normalization: We apply cleaning routines to ensure consistency. For example, branch names from different legacy systems are reconciled via a mapping table. Date formats are unified, and currency fields are converted to a common unit. Text fields (customer names, merchant descriptions) are standardized (removing special characters, using consistent capitalization). We may employ libraries such as OpenRefine or custom scripts for bulk cleaning. This aligns with AML best practices that emphasize data governance[2].
+Data Structuring: The cleaned data is then organized into relational tables (e.g., Customers, Accounts, Transactions, Alerts) in PostgreSQL (Supabase). Unstructured text (like transaction descriptions) is stored both as raw text and as vector embeddings (see step 3). The goal is a well-structured, queryable dataset that still retains all original information.
+2. Feature Extraction and Anomaly Detection
+Time-Series and Aggregate Features: For each account or customer, we compute statistical features. Examples include: average monthly inflow/outflow, standard deviation, velocity (transactions per day), largest single transaction, frequency of transfers to new payees, etc. Python libraries like NumPy and Pandas make these calculations straightforward. We also use rolling windows (e.g. 30-day moving average) to detect sudden spikes.
+Dimensionality Reduction (Optional): If the feature set is large, we can apply PCA or UMAP to capture principal components of behavior (e.g. typical transaction pattern vs. anomalies). These reduced features can feed into clustering or visualization.
+Clustering and Outlier Models: We deploy unsupervised models to highlight unusual patterns. For instance, Isolation Forest or One-Class SVM flag points far from learned norms. We may also cluster transactions (K-means or DBSCAN) to identify groups (e.g. typical salary deposits vs. one-off events). A cluster of five near-$10k deposits (like John Smith’s) would stand out as an isolated cluster if most transactions are smaller.
+Graph Analysis: We build a graph of entities and accounts (using NetworkX), linking customers by shared attributes (address, phone) or by transaction flows (sender–receiver edges). Graph metrics (centrality, community detection) reveal network patterns like mule networks. For example, if one account receives many small deposits and then a large transfer to a single destination, graph algorithms can flag that hub pattern.
+Domain Rules Engine: In parallel, a rules-based module checks classic AML scenarios. This includes: structuring (multiple below-threshold cash deposits), unusual transaction velocity, geography-based rules (e.g. transfers to high-risk countries), and sanction/PEP hits. We implement these as simple Python rules or using a rules engine (e.g. Drools or custom). Rules are derived from regulatory guidelines (e.g. FinCEN SAR instructions, which require describing how transactions are “unusual” or “suspicious” in context). Each triggered rule attaches an explanation (e.g. “exceeds 3× normal flow”).
+Scoring and Prioritization: We combine anomaly scores and rule hits into an overall risk score. Cases above a threshold enter the narrative pipeline. This pre-analysis ensures the AI has quantified evidence to discuss (e.g. “this $90k was 5× the client’s usual monthly activity”).
+3. Data Correlation and Knowledge Graph
+Cross-Source Correlation: The system actively links events across data sources. For example, if the anomaly detector flags a spike of ₹98,000, a correlation agent looks for related events in other data: perhaps an incoming wire or loan disbursement at the same time. We use database joins and search (SQL queries or Pandas merges) to find matches by keys (customer ID, transaction reference) or by heuristics (amount/time proximity).
+Temporal Linking: Transactions are ordered by timestamp. If an outgoing large transfer quickly follows many deposits, the system notes the sequence. We create timeline features, and the LLM is prompted with chronological facts (e.g. “Day 1: five deposits; Day 2: one large withdrawal”).
+Semantic Search (RAG): We index internal knowledge (past SAR narratives, typology documents, regulatory bulletins) in a vector store (ChromaDB/Weaviate). The current case facts (as text) are embedded and used to retrieve relevant excerpts. This might surface a similar SAR or a regulatory definition (e.g. the SAR guide’s 5 Ws). These snippets feed into the narrative prompt.
+Entity Linking: If customer info is incomplete, the system attempts resolution. For instance, if “John Smith” appears without DOB, but there’s a matching phone number to another profile, we can merge them. This uses fuzzy matching or linking services.
+External Validation: Where possible, the system queries external APIs (e.g. a sanctions list or corporate registry) to enrich or validate data. For example, an entity involved in a suspicious transaction might be checked against known criminal databases.
+4. Narrative Drafting via LLM and RAG
+Prompt Engineering: The core narrative is generated by an LLM (Llama 3.1 70B or Amazon Claude3). We craft a system prompt that embeds the SAR format (the FinCEN checklist a–m) and the client’s context. For example: “You are a compliance analyst. Write a clear SAR narrative covering who, what, when, where, why, and how. Use bullet (a)–(m) guidelines to ensure completeness.”
+Chain-of-Thought and Agents: We use LangChain (or an agentic framework) to structure the drafting. One approach is a ‘typology agent’ that first summarizes each suspicious pattern, a ‘customer profile agent’ that lists relevant history, and a ‘narrative agent’ that compiles the final text. Intermediate LLM calls generate chain-of-thought explanations (e.g. “Why is this unusual?”). These chains are logged for the audit.
+Tool Integration: The LLM can call our analytic tools via function calls (LangChain’s function-calling). For instance, it might request “get_average_deposit(customerID, last 12 months)” and incorporate the result. This anchors the text in real numbers.
+Iterative Refinement: The narrative is built section by section. After an initial draft, the Compliance Agent reviews it against the SAR checklist (items a–m). If a point is missing, the system prompts the LLM to add it. For example, if “beneficiaries” (point b) aren’t mentioned, the LLM is asked to incorporate who benefited. This ensures adherence to regulatory structure.[3]
+Human Review: The draft is presented in the UI. If the analyst edits a paragraph or adds notes, the system can optionally re-run the LLM on that paragraph (keeping the rest intact). This is implemented via a “Select-and-Edit” feature: the UI captures the changed text, and a backend API asks the LLM to rewrite the specific section with the new instructions. All versions are saved.
+5. Output Generation and Editable Reports
+Report Assembly: The final narrative is formatted into a document. We use libraries like ReportLab or pdf-lib to generate a PDF/SAR form, or render HTML for export. We ensure the layout follows the official SAR form (as per the Blank SAR PDF provided). Each narrative paragraph corresponds to a form section.
+Editable Blocks: In the UI (React frontend), the narrative appears as editable blocks (implemented with an open-source rich-text editor, e.g. Draft.js or Slate). Analysts can click any block to modify text or add content. The system preserves block IDs so that when changes are made, only that segment is updated in the backend.
+Dynamic Filling: If needed, the system can fill form fields (e.g. “Date of Suspicious Activity”, “Transaction Amounts”) automatically from the case data using state variables. This ensures consistency between the text and structured form fields.
+Saving and Versioning: Every save generates a new version in the database. We capture who edited what and when. This version history is part of the audit trail, enabling “point-in-time” review of narrative evolution.
+6. Audit Trail Capture and Linking
+Data Provenance Records: For each narrative statement, we store its justification. In the database, each sentence or block is tagged with references to the underlying data points or rules. For example, the sentence “Customer’s usual monthly inflow is ₹5k” is linked to the average calculated in step 2.
+Database Storage: The audit trail is stored in JSON form in a relational table or in DynamoDB: e.g. {"paragraph_id":123, "source": "transaction_table", "query": "...", "result": ...}. This may include tool outputs, raw chain-of-thought, and clicked references.
+User Display: In the UI, each paragraph has an info icon. Clicking it pops up the relevant audit details (data snippet, rule explanation). Alternatively, we could implement hyperlinked footnotes: each numbered footnote expands to show the data or rule behind that point. If PDF outputs allow, we might embed hidden text or an appendix with these references.
+End-to-End Traceability: The combined audit (all queries, code executions, LLM traces) is exportable for regulators. For PDF/Word output, we might include an annex that lists “Source Data for Narrative” with itemized evidence.
+7. Research Approach vs. Our Solution
+LLM Usage: The Battu research (“Co-Investigator” AI) used chain-of-thought prompting with GPT-style LLMs to produce narratives[4]. They demonstrated substantial time savings (~61%) and moderate completeness (~70%). We follow the same principle of guided generation but enhance it with explicit tools (analytics, RAG). Unlike the research prototype, we plan to use open-source models (e.g. Mistral or Llama 3.1) that can be deployed on-prem or in cloud, aligning with bank requirements.
+Multi-Agent vs. Single Prompt: The research largely treated the LLM as a single multi-turn assistant. In contrast, our design uses a multi-agent framework (LangChain/LangGraph). This means separate components focus on typology detection, data retrieval, and drafting, leading to potentially more structured reasoning. The research’s CoT approach is elegant, but our agentic pipeline offers clearer modularity and easier incorporation of new tools or rules.
+Audit and UI: The prior study evaluated narrative quality but did not address interactive editing or audit integration. We prioritize explainability: our solution logs every step (tool outputs, prompt changes), which the research did not fully demonstrate. Moreover, we provide a user interface for real-time edits, whereas their demo was more of a static chatbot style.
+Formatting and Compliance: Both approaches recognize the importance of SAR format. The research enforced a narrative template; we explicitly encode regulatory checklists into our prompt and output, ensuring all required elements (points a–m from FinCEN’s instructions) are covered. We go further by structuring the output to match the official SAR form (as per the uploaded blank SAR).
+Where Research Excels: The research paper shows that even a basic LLM pipeline can yield substantial efficiency gains in narrative writing[4]. Their evaluation with domain experts provides evidence that AI-generated drafts are quite useful.
+Where Our Solution Excels: We extend beyond a pure LLM by integrating data analytics and interactive controls. Our design handles messy real-world data (see section 1-3), offers detailed audit linking, and is built for production scaling. Unlike the research’s experimental setup, we outline actual software architecture and tool choices (e.g. React frontend, FastAPI backend, Supabase). This makes our solution more practical for enterprise deployment.
+Sources: We leveraged AML best practices (FinCEN SAR guidelines[5]), insights from AML vendors (NICE Actimize, Hawk.AI[6][7]), and recent AI-for-AML studies[4][8]. All tools mentioned are open-source or AWS-managed per constraints. The above methodology combines these sources into a cohesive, stepwise solution.
+[1] Why Data Quality Is The Bedrock of Effective AML Compliance
+https://www.flagright.com/post/why-data-quality-is-the-bedrock-of-effective-aml-compliance
+[2] Data quality: the Achilles’ heel of AML compliance
+https://www.finscan.com/post/data-quality-the-achilles-heel-of-aml-compliance
+[3] [4] Co-Investigator AI: The Rise of Agentic AI for Smarter, Trustworthy AML Compliance Narratives
+https://arxiv.org/html/2509.08380v1
+[5] FFIEC BSA/AML Appendices - Appendix L – SAR Quality Guidance
+https://bsaaml.ffiec.gov/manual/Appendices/13
+[6] NICE Actimize’s Transaction Monitoring Software - STAR
+https://www.niceactimize.com/anti-money-laundering/suspicious-transaction-activity-reporting
+[7] AI-Powered SAR Narratives & Automated Filing Software | Hawk
+https://hawk.ai/platform/sar-filing
+[8] Revolutionizing SARs filings and investigation efficiency through AI - Thomson Reuters Institute
+https://www.thomsonreuters.com/en-us/posts/investigation-fraud-and-risk/ai-revolution-sars-filings/
+
