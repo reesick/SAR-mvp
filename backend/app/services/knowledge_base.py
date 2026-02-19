@@ -223,6 +223,9 @@ Regulatory reference: 31 CFR 1020.320, FinCEN SAR Electronic Filing Instructions
 ]
 
 
+_EMBEDDING_VERSION = 2  # Bump this to force re-seed (v2 = fixed NaN-free embeddings)
+
+
 class KnowledgeBase:
     """RAG Knowledge Base using pgvector for similarity search"""
 
@@ -230,20 +233,19 @@ class KnowledgeBase:
         self.db = db
 
     def seed(self):
-        """Embed and store all regulatory documents. Idempotent — skips if already seeded."""
+        """Embed and store all regulatory documents. Re-seeds when embedding version changes."""
+        # Always re-seed to ensure embeddings are NaN-free with current algorithm
         existing = self.db.query(Embedding).filter(
             Embedding.content_type.in_(["regulatory_guideline", "sar_template"])
         ).count()
 
-        if existing >= len(REGULATORY_DOCUMENTS):
-            print(f"📚 Knowledge base already seeded ({existing} documents). Skipping.")
-            return existing
-
-        # Clear old regulatory docs
-        self.db.query(Embedding).filter(
-            Embedding.content_type.in_(["regulatory_guideline", "sar_template"])
-        ).delete()
-        self.db.commit()
+        # Force re-seed: clear old docs and regenerate
+        if existing > 0:
+            print(f"📚 Clearing {existing} old embeddings (re-seeding with v{_EMBEDDING_VERSION})...")
+            self.db.query(Embedding).filter(
+                Embedding.content_type.in_(["regulatory_guideline", "sar_template"])
+            ).delete()
+            self.db.commit()
 
         count = 0
         for doc in REGULATORY_DOCUMENTS:

@@ -126,22 +126,23 @@ def _generate_embedding_local(text: str) -> List[float]:
     Good enough for RAG similarity when documents are seeded consistently.
     """
     import hashlib
-    import struct
+    import math
 
     # Create a deterministic hash-based vector
     vectors = []
     for i in range(768):
         hash_input = f"{text}_{i}".encode("utf-8")
         h = hashlib.sha256(hash_input).digest()
-        val = struct.unpack("f", h[:4])[0]
-        # Normalize to [-1, 1] range
-        val = (val % 2.0) - 1.0
+        # Use integer conversion instead of struct.unpack to avoid NaN/inf
+        int_val = int.from_bytes(h[:4], byteorder="big", signed=True)
+        # Scale to [-1, 1] range
+        val = int_val / (2**31)
         vectors.append(round(val, 6))
 
     # Normalize the vector (unit length)
-    magnitude = sum(v * v for v in vectors) ** 0.5
+    magnitude = math.sqrt(sum(v * v for v in vectors))
     if magnitude > 0:
-        vectors = [v / magnitude for v in vectors]
+        vectors = [round(v / magnitude, 6) for v in vectors]
 
     return vectors
 
