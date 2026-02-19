@@ -2,8 +2,30 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Lock, ArrowRight, Loader } from 'lucide-react';
+import { User, Lock, ArrowRight, Loader, Copy, Check } from 'lucide-react';
 import { api } from '../services/api';
+
+const DEMO_EMAIL = 'shreevirajmatale25@gmail.com';
+const DEMO_PASS = 's@12';
+
+function CopyButton({ text }) {
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    return (
+        <button
+            type="button"
+            onClick={handleCopy}
+            className="ml-2 p-1 rounded-md hover:bg-slate-200 transition-colors text-slate-500 hover:text-sky-600"
+            title="Copy"
+        >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+    );
+}
 
 function Login() {
     const [isRegister, setIsRegister] = useState(false);
@@ -55,6 +77,29 @@ function Login() {
                             {isRegister ? 'Join the AML Investigation Team' : 'Sign into your dashboard'}
                         </p>
                     </div>
+
+                    {/* Demo Credentials Box */}
+                    {!isRegister && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 bg-sky-50 border border-sky-200 rounded-xl text-sm"
+                        >
+                            <p className="text-sky-700 font-semibold mb-2 text-xs uppercase tracking-wide">🔑 Demo Credentials</p>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
+                                    <span className="text-slate-500 text-xs mr-2 shrink-0">Email:</span>
+                                    <span className="text-slate-800 font-medium text-xs truncate">{DEMO_EMAIL}</span>
+                                    <CopyButton text={DEMO_EMAIL} />
+                                </div>
+                                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
+                                    <span className="text-slate-500 text-xs mr-2 shrink-0">Password:</span>
+                                    <span className="text-slate-800 font-medium text-xs">{DEMO_PASS}</span>
+                                    <CopyButton text={DEMO_PASS} />
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
 
                     {error && (
                         <motion.div

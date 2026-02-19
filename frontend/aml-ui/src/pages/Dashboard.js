@@ -6,15 +6,28 @@ import {
     BarChart3,
     Search,
     LogOut,
-    AlertTriangle,
-    CheckCircle,
-    Clock,
     Menu,
     X,
     FileText,
-    Settings
+    Settings,
+    Zap
 } from 'lucide-react';
 import { api } from '../services/api';
+
+const QUICK_CUSTOMERS = [
+    { id: 1, name: 'Customer 1' },
+    { id: 2, name: 'Customer 2' },
+    { id: 3, name: 'Customer 3' },
+    { id: 4, name: 'Customer 4' },
+    { id: 5, name: 'Customer 5' },
+    { id: 6, name: 'Customer 6' },
+    { id: 7, name: 'Customer 7' },
+    { id: 8, name: 'Customer 8' },
+    { id: 9, name: 'Customer 9' },
+    { id: 10, name: 'Customer 10' },
+    { id: 11, name: 'Customer 11' },
+    { id: 12, name: 'Customer 12' },
+];
 
 function Dashboard() {
     const { logout } = useAuth();
@@ -104,12 +117,37 @@ function Dashboard() {
 
                 <div className="p-8 max-w-7xl mx-auto space-y-8">
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <StatCard icon={<AlertTriangle className="text-amber-500" />} label="High Risk Cases" value="12" change="+2 today" color="amber" />
-                        <StatCard icon={<CheckCircle className="text-emerald-500" />} label="Cases Closed" value="84" change="+5 this week" color="emerald" />
-                        <StatCard icon={<Clock className="text-sky-500" />} label="Avg Analysis Time" value="45s" change="-12% vs last week" color="sky" />
-                    </div>
+                    {/* Quick Customer Picker */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"
+                    >
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="p-2 bg-indigo-50 rounded-lg">
+                                <Zap className="text-indigo-500 w-4 h-4" />
+                            </div>
+                            <h3 className="font-semibold text-slate-700">Quick Select Customer</h3>
+                            <span className="text-xs text-slate-400 ml-1">— click to auto-fill ID below</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {QUICK_CUSTOMERS.map((c) => (
+                                <button
+                                    key={c.id}
+                                    onClick={() => setCustomerId(String(c.id))}
+                                    className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-150
+                                        ${customerId === String(c.id)
+                                            ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+                                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-700'
+                                        }`}
+                                >
+                                    #{c.id}
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
 
+                    {/* Investigation Form */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -147,6 +185,7 @@ function Dashboard() {
                         </div>
                     </motion.div>
 
+                    {/* Recent Investigations */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                             <h3 className="font-semibold text-slate-700">Recent Investigations</h3>
@@ -162,21 +201,15 @@ function Dashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {[1, 2, 3].map((_, i) => (
-                                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-sm font-medium text-slate-900">#CASE-2026-{800 + i}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-600">Customer {7 + i}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                                {i === 0 ? 'High Risk' : 'Cleared'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">Feb {18 - i}, 2026</td>
-                                    </tr>
-                                ))}
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-slate-400 text-sm">
+                                        No investigations yet. Select a customer above to get started.
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
+
                 </div>
             </main>
         </div>
@@ -188,19 +221,6 @@ const NavItem = ({ icon, label, active, expanded, onClick }) => (
         {React.cloneElement(icon, { size: 20 })}
         {expanded && <span className="ml-3 font-medium">{label}</span>}
     </button>
-);
-
-const StatCard = ({ icon, label, value, change }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-        <div className="flex items-start justify-between mb-4">
-            <div className="p-3 bg-slate-50 rounded-xl">
-                {icon}
-            </div>
-            {change && <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{change}</span>}
-        </div>
-        <h3 className="text-3xl font-bold text-slate-800 mb-1">{value}</h3>
-        <p className="text-sm text-slate-500 font-medium">{label}</p>
-    </div>
 );
 
 export default Dashboard;
