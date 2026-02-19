@@ -55,19 +55,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Seed RAG knowledge base on startup
+# Seed RAG knowledge base on startup (non-blocking for Render port binding)
 @app.on_event("startup")
 def seed_knowledge_base():
-    from app.services.knowledge_base import KnowledgeBase
-    from app.database import SessionLocal
-    db = SessionLocal()
-    try:
-        kb = KnowledgeBase(db)
-        kb.seed()
-    except Exception as e:
-        print(f"⚠️ Knowledge base seeding failed (non-fatal): {e}")
-    finally:
-        db.close()
+    import threading
+
+    def _seed():
+        from app.services.knowledge_base import KnowledgeBase
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            kb = KnowledgeBase(db)
+            kb.seed()
+        except Exception as e:
+            print(f"⚠️ Knowledge base seeding failed (non-fatal): {e}")
+        finally:
+            db.close()
+
+    threading.Thread(target=_seed, daemon=True).start()
+    logger.info("📚 Knowledge base seeding started in background")
 
 # Pydantic models
 class UserCreate(BaseModel):
