@@ -74,7 +74,7 @@ function Dashboard() {
                 <nav className="flex-1 py-6 space-y-2 px-3">
                     <NavItem icon={<BarChart3 />} label="Dashboard" active={true} expanded={sidebarOpen} onClick={() => { }} />
                     <NavItem icon={<FileText />} label="Customers" expanded={sidebarOpen} onClick={() => navigate('/customers')} />
-                    <NavItem icon={<Settings />} label="Settings" expanded={sidebarOpen} onClick={() => { }} />
+                    <NavItem icon={<Settings />} label="Settings" expanded={sidebarOpen} onClick={() => alert('Settings coming soon!')} />
                 </nav>
 
                 <div className="p-4 border-t border-slate-800">
@@ -150,7 +150,7 @@ function Dashboard() {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                             <h3 className="font-semibold text-slate-700">Recent Investigations</h3>
-                            <button className="text-sm text-sky-600 font-medium hover:text-sky-700">View All</button>
+                            <button onClick={() => navigate('/customers')} className="text-sm text-sky-600 font-medium hover:text-sky-700">View All</button>
                         </div>
                         <table className="w-full">
                             <thead className="bg-slate-50/50 text-left">

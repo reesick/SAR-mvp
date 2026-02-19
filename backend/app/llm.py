@@ -12,6 +12,9 @@ import requests
 import os
 import logging
 from typing import List
+from dotenv import load_dotenv
+load_dotenv()
+
 
 logger = logging.getLogger("aml.llm")
 
@@ -19,7 +22,8 @@ logger = logging.getLogger("aml.llm")
 GROQ_ENABLED = os.getenv("GROQ_ENABLED", "no").lower() in ("yes", "true", "1")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "mixtral-8x7b-32768"  # Free tier, fast, high quality
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = "mistral:7b-instruct-q4_K_M"
@@ -65,7 +69,7 @@ def _generate_text_groq(prompt: str) -> str:
                     {"role": "user", "content": prompt},
                 ],
                 "temperature": 0.3,
-                "max_tokens": 4096,
+                "max_tokens": 1024
             },
             timeout=120,
         )
@@ -109,10 +113,8 @@ def generate_embedding(text: str) -> List[float]:
     Returns:
         768-dimensional embedding vector
     """
-    if GROQ_ENABLED:
-        return _generate_embedding_local(text)
-    else:
-        return _generate_embedding_ollama(text)
+   
+    return _generate_embedding_ollama(text)
 
 
 def _generate_embedding_local(text: str) -> List[float]:
@@ -158,3 +160,4 @@ def _generate_embedding_ollama(text: str) -> List[float]:
     except Exception as e:
         logger.error(f"Embedding error: {e}")
         return [0.0] * 768  # Return zero vector on error
+

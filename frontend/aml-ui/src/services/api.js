@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const axiosInstance = axios.create({
     baseURL: API_BASE,
@@ -14,6 +14,18 @@ axiosInstance.interceptors.request.use((config) => {
     }
     return config;
 });
+
+// Auto-logout on 401 (expired/invalid token)
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
 
 export const api = {
     // Auth
