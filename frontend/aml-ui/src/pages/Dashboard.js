@@ -158,7 +158,7 @@ function Dashboard() {
                                 <Search className="text-white w-8 h-8" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-800 mb-2">Start New Investigation</h2>
-                            <p className="text-slate-500 mb-8">Enter a Customer ID to trigger the autonomous AI pipeline.</p>
+                            <p className="text-slate-500 mb-8">Enter a Customer ID to trigger the autonomous AI pipeline.(wait for 5-10 seconds)</p>
 
                             <form onSubmit={runAnalysis} className="relative max-w-md mx-auto">
                                 <input
