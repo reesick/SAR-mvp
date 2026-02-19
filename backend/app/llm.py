@@ -113,7 +113,9 @@ def generate_embedding(text: str) -> List[float]:
     Returns:
         768-dimensional embedding vector
     """
-   
+    if GROQ_ENABLED:
+        # Groq doesn't offer embeddings on free tier; use local hash-based fallback
+        return _generate_embedding_local(text)
     return _generate_embedding_ollama(text)
 
 
