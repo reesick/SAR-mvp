@@ -79,27 +79,51 @@ function Login() {
                     </div>
 
                     {/* Demo Credentials Box */}
-                    {!isRegister && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mb-6 p-4 bg-sky-50 border border-sky-200 rounded-xl text-sm"
-                        >
-                            <p className="text-sky-700 font-semibold mb-2 text-xs uppercase tracking-wide">🔑 Demo Credentials</p>
-                            <div className="space-y-1.5">
-                                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
-                                    <span className="text-slate-500 text-xs mr-2 shrink-0">Email:</span>
-                                    <span className="text-slate-800 font-medium text-xs truncate">{DEMO_EMAIL}</span>
-                                    <CopyButton text={DEMO_EMAIL} />
-                                </div>
-                                <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
-                                    <span className="text-slate-500 text-xs mr-2 shrink-0">Password:</span>
-                                    <span className="text-slate-800 font-medium text-xs">{DEMO_PASS}</span>
-                                    <CopyButton text={DEMO_PASS} />
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
+{!isRegister && (
+    <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6 p-4 bg-sky-50 border border-sky-200 rounded-xl text-sm"
+    >
+        <p className="text-sky-700 font-semibold mb-2 text-xs uppercase tracking-wide">
+            🔑 Demo Credentials
+        </p>
+
+        {/* Backend Activation Notice */}
+        <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-amber-700 text-xs leading-relaxed">
+                ⚠️ Before signing in, please activate the backend by clicking{" "}
+                <a
+                    href="https://sar-mvp.onrender.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                >
+                    https://sar-mvp.onrender.com/
+                </a>{" "}
+                or wait 1–2 minutes for the backend to restart.
+            </p>
+        </div>
+
+        <div className="space-y-1.5">
+            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
+                <span className="text-slate-500 text-xs mr-2 shrink-0">Email:</span>
+                <span className="text-slate-800 font-medium text-xs truncate">
+                    {DEMO_EMAIL}
+                </span>
+                <CopyButton text={DEMO_EMAIL} />
+            </div>
+
+            <div className="flex items-center justify-between bg-white rounded-lg px-3 py-1.5 border border-sky-100">
+                <span className="text-slate-500 text-xs mr-2 shrink-0">Password:</span>
+                <span className="text-slate-800 font-medium text-xs">
+                    {DEMO_PASS}
+                </span>
+                <CopyButton text={DEMO_PASS} />
+            </div>
+        </div>
+    </motion.div>
+)}
 
                     {error && (
                         <motion.div
